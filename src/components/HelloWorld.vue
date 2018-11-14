@@ -1,5 +1,8 @@
 <template>
-  <div class="hello">
+  <div>
+    <v-alert :value="true" type="success" v-if="done" outline>
+      Arquivo enviado e aguardando processamento
+    </v-alert>
     <input
       type="file"
       accept="application/pdf"
@@ -12,15 +15,26 @@
     <br />
     <br />
     <br />
-    <button @click="teste">Enviar arquivo</button> <br />
+    <v-btn @click="teste" color="info" dark>Enviar</v-btn>
     <br />
-    {{ progress }} %
+    <br />
+    <v-progress-circular
+      :rotate="-90"
+      :size="100"
+      :width="15"
+      :value="progress"
+      color="primary"
+      v-if="done === false"
+    >
+      {{ progress }}%
+    </v-progress-circular>
   </div>
 </template>
 
 <script>
 export default {
   name: "HelloWorld",
+
   data() {
     return {
       chunk_size: 64 * 1024,
@@ -33,6 +47,7 @@ export default {
   methods: {
     teste() {
       this.done = false;
+      this.progress = 0;
       this.$socket.emit(
         "start-transfer",
         this.file.name,
@@ -58,8 +73,8 @@ export default {
     },
     onFileChange($event) {
       const files = $event.target.files || $event.dataTransfer.files;
-      // this.form.binaryDocumento = files[0];
-
+      // this.form.binaryDo100cumento = files[0];
+      this.done = false;
       this.file = files[0];
     },
     readFileChunk(file, offset, length, success, error) {
@@ -101,7 +116,13 @@ export default {
       );
       var end_offset = offset + length;
       // this.progress = parseInt((300 * end_offset) / file.size);
-      this.progress = parseInt((100 * end_offset) / file.size);
+      var proces = parseInt((100 * end_offset) / file.size);
+      if (this.progress !== proces) {
+        if (this.multiple(proces, 5)) {
+          this.progress = proces;
+        }
+      }
+
       if (end_offset < file.size)
         this.readFileChunk(
           file,
@@ -115,9 +136,8 @@ export default {
         // this.progress.classList.remove('in-progress');
 
         this.done = true;
-        this.file = null;
-        this.progress = 0;
-        alert("Transferência concluida");
+        this.progress = 100;
+        // alert("Transferência concluida");
       }
     },
     onReadError(file, offset, length, error) {
@@ -126,8 +146,12 @@ export default {
       // this.progress.classList.add('error');
       // this.progress.classList.remove('in-progress');
       this.done = true;
-      this.file = null;
       this.progress = 0;
+    },
+    multiple(valor, multiple) {
+      var resto = valor % multiple;
+      if (resto === 0) return true;
+      else return false;
     }
   }
 };
