@@ -14,7 +14,7 @@
     <br />
     <button @click="teste">Enviar arquivo</button> <br />
     <br />
-    {{ progress }}
+    {{ progress }} %
   </div>
 </template>
 
